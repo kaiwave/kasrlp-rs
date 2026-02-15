@@ -1,2 +1,2 @@
-# kdrmlp-rs
-kaiwave's digit recognition machine learning project
+# kasrlp-rs
+kaiwave's atom simulator rust learning project
