@@ -1,24 +1,24 @@
-use crate::winsdl::Winsdl;
+mod bohrAtom;
+mod winsdl;
 use sdl2::event::Event;
 
-mod winsdl;
 
-fn main(){
-	let mut winsdl = Winsdl::new(800, 600).unwrap();
+fn main() {
+  let mut winsdl = winsdl::Winsdl::new(800, 600).unwrap();
+  let hydrogen = bohrAtom::BohrAtom::new((400, 300), 1.0);
 
-	'running: loop{
-		for event in winsdl.event_pump.poll_iter() {
-			match event {
-				Event::Quit {..} => break 'running,
-				_ => {},
-			}
-		}
+    'running: loop {
+        for event in winsdl.event_pump.poll_iter() {
+            if let Event::Quit {..} = event { break 'running }
+        }
 
-		unsafe {
-			gl::ClearColor(1, 0.1, 0.1, 1.0);
-			gl::Clear(gl::COLOR_BUFFER_BIT);
-		}
+        unsafe {
+            gl::Clear(gl::COLOR_BUFFER_BIT);
+        }
 
-		winsdl.window.gl_swap_window();
-	}
+        // The atom draws itself onto the existing context
+        hydrogen.draw();
+
+        winsdl.window.gl_swap_window();
+    }
 }
