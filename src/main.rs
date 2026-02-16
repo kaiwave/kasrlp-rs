@@ -1,7 +1,7 @@
 mod bohrAtom;
 mod winsdl;
+use gl::*;
 use sdl2::event::Event;
-
 
 fn main() {
   let mut winsdl = winsdl::Winsdl::new(800, 600).unwrap();

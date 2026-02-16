@@ -8,8 +8,10 @@ this is not intended to be a full implementation of the atom simulator, but rath
 below i will link the resources i am using to learn
 
 https://www.youtube.com/watch?v=OSAOh4L41Wg all math will be adapted from this video.
-z
+
 https://www.youtube.com/watch?v=7qgdCq8ufYE opengl introduction 
+
+https://rust-tutorials.github.io/learn-opengl/introduction.html opengl implementations in rust. who made it like this.
 
 
 
