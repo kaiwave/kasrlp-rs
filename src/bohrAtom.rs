@@ -20,9 +20,24 @@ impl BohrAtom {
 		type Vertex = [f32; 3];
 		const VERTICES: [Vertex; 3] = [[-0.5, -0.5, 0.0], [0.5, -0.5, 0.0], [0.0, 0.5, 0.0]];   // Testing triangle drawing
 
+		const VERT_SHADER: &str = r#"#version 330 core
+		layout (location = 0) in vec3 pos;
+		void main() {
+			gl_Position = vec4(pos.x, pos.y, pos.z, 1.0);
+		}
+		"#;                                                                                     // Vertex shader source code, which takes in a position and sets the gl_Position to that position
+
+		const FRAG_SHADER: &str = r#"#version 330 core
+		out vec4 final_color;
+		void main() {
+			final_color = vec4(1.0, 0.5, 0.2, 1.0);
+		}
+		"#;                     																					                     	// Fragment shader source code, which sets the final color to a specific value
+
     unsafe {
 			let mut vao = 0;
 			gl::GenVertexArrays(1, &mut vao);                                                     // Generate a vertex array object and assert that it was created successfully (not zero)
+			gl::BindVertexArray(vao);
 			assert_ne!(vao, 0);                                                                   // This is an object that collects bits of stuff, and we need it to buffer data and describe it
 
 			let mut vbo = 0;
@@ -51,7 +66,85 @@ impl BohrAtom {
 			let vertex_shader = CreateShader(VERTEX_SHADER);
 			assert_ne!(vertex_shader, 0);
 
-      gl::ClearColor(0.1, 0.1, 0.1, 1.0); 
+			ShaderSource(
+				vertex_shader,
+				1,
+				&(VERT_SHADER.as_bytes().as_ptr().cast()),
+				&(VERT_SHADER.len().try_into().unwrap()),
+			);
+
+			CompileShader(vertex_shader);
+
+			let mut success = 0;
+			GetShaderiv(vertex_shader, COMPILE_STATUS, &mut success);
+
+			if success == 0 {
+				let mut v: Vec<u8> = Vec::with_capacity(1024);
+				let mut log_len = 0_i32;
+				GetShaderInfoLog(
+					vertex_shader,
+					1024,
+					&mut log_len,
+					v.as_mut_ptr().cast(),
+				);
+				v.set_len(log_len.try_into().unwrap());
+				panic!("Vertex Compile Error: {}", String::from_utf8_lossy(&v));
+			}
+
+			let fragment_shader = CreateShader(FRAGMENT_SHADER);
+			assert_ne!(fragment_shader, 0);
+
+			ShaderSource(
+				fragment_shader,
+				1,
+				&(FRAG_SHADER.as_bytes().as_ptr().cast()),
+				&(FRAG_SHADER.len().try_into().unwrap()),
+			);
+			CompileShader(fragment_shader);
+
+			let mut success = 0;
+			GetShaderiv(fragment_shader, COMPILE_STATUS, &mut success);
+			if success == 0 {
+				let mut v: Vec<u8> = Vec::with_capacity(1024);
+				let mut log_len = 0_i32;
+				GetShaderInfoLog(
+					fragment_shader,
+					1024,
+					&mut log_len,
+					v.as_mut_ptr().cast(),
+				);
+			v.set_len(log_len.try_into().unwrap());
+			panic!("Fragment Compile Error: {}", String::from_utf8_lossy(&v));
+			}
+
+			let shader_program = CreateProgram();
+			AttachShader(shader_program, vertex_shader);
+			AttachShader(shader_program, fragment_shader);
+			LinkProgram(shader_program);
+
+			let mut success = 0;
+			GetProgramiv(shader_program, LINK_STATUS, &mut success);
+			if success == 0 {
+				let mut v: Vec<u8> = Vec::with_capacity(1024);
+				let mut log_len = 0_i32;
+				GetProgramInfoLog(
+					shader_program,
+					1024,
+					&mut log_len,
+					v.as_mut_ptr().cast(),
+				);
+			v.set_len(log_len.try_into().unwrap());
+			panic!("Program Link Error: {}", String::from_utf8_lossy(&v));
+			}
+
+			DeleteShader(vertex_shader);
+			DeleteShader(fragment_shader);
+
+      Clear(COLOR_BUFFER_BIT);
+
+			UseProgram(shader_program);
+
+			DrawArrays(TRIANGLES, 0, 3);
     }
   }
 }
